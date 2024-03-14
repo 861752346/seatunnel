@@ -636,6 +636,21 @@
                     <version>${snowflake.version}</version>
                     <scope>provided</scope>
                 </dependency>
+
+                <!-- https://mvnrepository.com/artifact/io.trino/trino-jdbc -->
+                <dependency>
+                    <groupId>io.trino</groupId>
+                    <artifactId>trino-jdbc</artifactId>
+                    <version>439</version>
+                    <scope>provided</scope>
+                </dependency>
+                <!-- https://mvnrepository.com/artifact/com.facebook.presto/presto-jdbc -->
+                <dependency>
+                    <groupId>com.facebook.presto</groupId>
+                    <artifactId>presto-jdbc</artifactId>
+                    <version>0.285.1</version>
+                    <scope>provided</scope>
+                </dependency>
                 <!-- jdbc driver end -->
 
                 <dependency>
