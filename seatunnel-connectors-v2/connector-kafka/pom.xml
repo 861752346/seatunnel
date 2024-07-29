@@ -79,4 +79,25 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <filters>
+                        <filter>
+                            <artifact>*:kafka-clients</artifact>
+                            <excludes>
+                                <!--為了兼容華為-->
+                                <exclude>org/apache/kafka/common/security/authenticator/SaslClientAuthenticator.class</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
