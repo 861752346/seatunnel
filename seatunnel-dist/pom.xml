@@ -694,6 +694,22 @@
                     <scope>provided</scope>
                 </dependency>
                 <!-- hadoop jar end -->
+
+                <!-- hive jar -->
+                <dependency>
+                    <groupId>org.apache.hive</groupId>
+                    <artifactId>hive-exec</artifactId>
+                    <version>${hive.exec.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.thrift</groupId>
+                    <artifactId>libfb303</artifactId>
+                    <version>0.9.3</version>
+                    <scope>provided</scope>
+                </dependency>
+                <!-- hive jar end -->
+
             </dependencies>
             <repositories>
                 <repository>
