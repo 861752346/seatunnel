@@ -181,6 +181,8 @@
                 <include>com.amazon.redshift:redshift-jdbc42:jar</include>
                 <include>net.snowflake.snowflake-jdbc:jar</include>
                 <include>com.xugudb:xugu-jdbc:jar</include>
+                <include>com.facebook.presto:presto-jdbc:jar</include>
+                <include>io.trino:trino-jdbc:jar</include>
                 <include>org.apache.hadoop:hadoop-aws:jar</include>
                 <include>com.amazonaws:aws-java-sdk-bundle:jar</include>
                 <include>org.apache.seatunnel:seatunnel-hadoop3-3.1.4-uber:jar:*:optional</include>
