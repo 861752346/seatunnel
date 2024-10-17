@@ -113,6 +113,10 @@ public class ElasticsearchIT extends TestSuiteBase implements TestResource {
                         Optional.empty(),
                         Optional.empty(),
                         Optional.empty(),
+                        Optional.empty(),
+                        false,
+                        Optional.empty(),
+                        Optional.empty(),
                         Optional.empty());
         testDataset = generateTestDataSet();
         createIndexDocs();
