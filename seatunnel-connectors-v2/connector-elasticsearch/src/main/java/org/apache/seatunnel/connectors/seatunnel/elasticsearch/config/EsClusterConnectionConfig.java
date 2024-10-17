@@ -80,4 +80,28 @@ public class EsClusterConnectionConfig {
                     .stringType()
                     .noDefaultValue()
                     .withDescription("The key password for the trust store specified");
+
+    public static final Option<Boolean> KERBEROS_ENABLED =
+            Options.key("kerberos_enabled")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription("Enable certificates validation for HTTPS endpoints");
+
+    public static final Option<String> KERBEROS_USER_PRINCIPAL_NAME =
+            Options.key("kerberos_user_principal_name")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("The principal name");
+
+    public static final Option<String> KERBEROS_USER_PASSWORD =
+            Options.key("kerberos_user_password")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("The principal name");
+
+    public static final Option<String> KERBEROS_USER_KEYTAB_PATH =
+            Options.key("kerberos_user_keytab_path")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("The keytab path");
 }
