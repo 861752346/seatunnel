@@ -111,6 +111,9 @@
                 <aliyun.sdk.oss.version>3.4.1</aliyun.sdk.oss.version>
                 <jdom.version>1.1</jdom.version>
                 <tidb.version>3.3.5</tidb.version>
+
+                <presto.version>0.288</presto.version>
+                <trino.version>453</trino.version>
             </properties>
             <dependencies>
                 <!-- starters -->
@@ -715,6 +718,20 @@
                     <groupId>org.tikv</groupId>
                     <artifactId>tikv-client-java</artifactId>
                     <version>${tidb.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>com.facebook.presto</groupId>
+                    <artifactId>presto-jdbc</artifactId>
+                    <version>${presto.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>io.trino</groupId>
+                    <artifactId>trino-jdbc</artifactId>
+                    <version>${trino.version}</version>
                     <scope>provided</scope>
                 </dependency>
                 <!-- jdbc driver end -->
