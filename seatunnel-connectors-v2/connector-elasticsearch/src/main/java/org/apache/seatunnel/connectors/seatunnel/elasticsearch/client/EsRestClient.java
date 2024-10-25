@@ -33,19 +33,12 @@ import org.apache.seatunnel.connectors.seatunnel.elasticsearch.dto.source.IndexD
 import org.apache.seatunnel.connectors.seatunnel.elasticsearch.dto.source.ScrollResult;
 import org.apache.seatunnel.connectors.seatunnel.elasticsearch.exception.ElasticsearchConnectorErrorCode;
 import org.apache.seatunnel.connectors.seatunnel.elasticsearch.exception.ElasticsearchConnectorException;
-import org.apache.seatunnel.connectors.seatunnel.elasticsearch.util.SSLUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.TrustAllStrategy;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.ssl.SSLContexts;
+
 import org.apache.http.util.Asserts;
 import org.apache.http.util.EntityUtils;
 
@@ -55,8 +48,6 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 
 import lombok.extern.slf4j.Slf4j;
-
-import javax.net.ssl.SSLContext;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -107,6 +98,21 @@ public class EsRestClient implements Closeable {
         }
 
         boolean tlsVerifyHostnames = config.get(EsClusterConnectionConfig.TLS_VERIFY_HOSTNAME);
+
+        Optional<String> kerberosUserPrincipalName = Optional.empty();
+        Optional<String> kerberosUserPassword = Optional.empty();
+        Optional<String> kerberosUserKeytabPath = Optional.empty();
+
+        boolean kerberosEnabled = config.get(EsClusterConnectionConfig.KERBEROS_ENABLED);
+        if (kerberosEnabled) {
+            kerberosUserPrincipalName =
+                    config.getOptional(EsClusterConnectionConfig.KERBEROS_USER_PRINCIPAL_NAME);
+            kerberosUserPassword =
+                    config.getOptional(EsClusterConnectionConfig.KERBEROS_USER_PASSWORD);
+            kerberosUserKeytabPath =
+                    config.getOptional(EsClusterConnectionConfig.KERBEROS_USER_KEYTAB_PATH);
+        }
+
         return createInstance(
                 hosts,
                 username,
@@ -116,7 +122,11 @@ public class EsRestClient implements Closeable {
                 keystorePath,
                 keystorePassword,
                 truststorePath,
-                truststorePassword);
+                truststorePassword,
+                kerberosEnabled,
+                kerberosUserPrincipalName,
+                kerberosUserPassword,
+                kerberosUserKeytabPath);
     }
 
     public static EsRestClient createInstance(
@@ -128,7 +138,11 @@ public class EsRestClient implements Closeable {
             Optional<String> keystorePath,
             Optional<String> keystorePassword,
             Optional<String> truststorePath,
-            Optional<String> truststorePassword) {
+            Optional<String> truststorePassword,
+            boolean kerberosEnabled,
+            Optional<String> kerberosUserPrincipalName,
+            Optional<String> kerberosUserPassword,
+            Optional<String> kerberosUserKeytabPath) {
         RestClientBuilder restClientBuilder =
                 getRestClientBuilder(
                         hosts,
@@ -139,7 +153,11 @@ public class EsRestClient implements Closeable {
                         keystorePath,
                         keystorePassword,
                         truststorePath,
-                        truststorePassword);
+                        truststorePassword,
+                        kerberosEnabled,
+                        kerberosUserPrincipalName,
+                        kerberosUserPassword,
+                        kerberosUserKeytabPath);
         return new EsRestClient(restClientBuilder.build());
     }
 
@@ -152,7 +170,11 @@ public class EsRestClient implements Closeable {
             Optional<String> keystorePath,
             Optional<String> keystorePassword,
             Optional<String> truststorePath,
-            Optional<String> truststorePassword) {
+            Optional<String> truststorePassword,
+            boolean kerberosEnabled,
+            Optional<String> kerberosUserPrincipalName,
+            Optional<String> kerberosUserPassword,
+            Optional<String> kerberosUserKeytabPath) {
         HttpHost[] httpHosts = new HttpHost[hosts.size()];
         for (int i = 0; i < hosts.size(); i++) {
             httpHosts[i] = HttpHost.create(hosts.get(i));
@@ -168,39 +190,19 @@ public class EsRestClient implements Closeable {
                                                 .setSocketTimeout(SOCKET_TIMEOUT));
 
         restClientBuilder.setHttpClientConfigCallback(
-                httpClientBuilder -> {
-                    if (username.isPresent()) {
-                        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-                        credentialsProvider.setCredentials(
-                                AuthScope.ANY,
-                                new UsernamePasswordCredentials(username.get(), password.get()));
-                        httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-                    }
-
-                    try {
-                        if (tlsVerifyCertificate) {
-                            Optional<SSLContext> sslContext =
-                                    SSLUtils.buildSSLContext(
-                                            keystorePath,
-                                            keystorePassword,
-                                            truststorePath,
-                                            truststorePassword);
-                            sslContext.ifPresent(httpClientBuilder::setSSLContext);
-                        } else {
-                            SSLContext sslContext =
-                                    SSLContexts.custom()
-                                            .loadTrustMaterial(new TrustAllStrategy())
-                                            .build();
-                            httpClientBuilder.setSSLContext(sslContext);
-                        }
-                        if (!tlsVerifyHostnames) {
-                            httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE);
-                        }
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                    return httpClientBuilder;
-                });
+                new SpnegoHttpClientConfigCallback(
+                        username,
+                        password,
+                        tlsVerifyCertificate,
+                        keystorePath,
+                        keystorePassword,
+                        truststorePath,
+                        truststorePassword,
+                        tlsVerifyHostnames,
+                        kerberosEnabled,
+                        kerberosUserPrincipalName,
+                        kerberosUserPassword,
+                        kerberosUserKeytabPath));
         return restClientBuilder;
     }
 
